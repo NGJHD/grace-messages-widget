@@ -11,16 +11,20 @@ Rules
   from the audio's "album" tag when available.
 
 Output: data/inventory.json
-Usage:  python pipeline/inventory.py [SOURCE_DIR]
+Usage:  python pipeline/inventory.py [SOURCE_DIR] [OUT_JSON]   (OUT_JSON for a dry run)
+
+Ids are stable across re-scans (date + slug of the title), so existing transcripts and
+messages keep matching; only newly added sermons get new ids.
 """
 import json
 import re
+import zlib
 import subprocess
 import sys
 from pathlib import Path
 
 SOURCE = Path(sys.argv[1] if len(sys.argv) > 1 else r"T:\Y\Sermons")
-OUT = Path(__file__).resolve().parent.parent / "data" / "inventory.json"
+OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(__file__).resolve().parent.parent / "data" / "inventory.json"
 MEDIA = {".mp3": 0, ".m4a": 1, ".mka": 2, ".wav": 3, ".mp4": 4, ".mkv": 5}
 DATE_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:\s+(.*))?$")
 
@@ -107,7 +111,7 @@ def main():
     dupes = {i for i in ids if ids.count(i) > 1}
     for it in kept:
         if it["id"] in dupes:
-            it["id"] += "-" + str(abs(hash(it["sources"][0])) % 10000)
+            it["id"] += "-" + str(zlib.crc32(Path(it["sources"][0]).name.encode()) % 10000)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(kept, indent=1, ensure_ascii=False), encoding="utf-8")

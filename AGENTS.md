@@ -107,9 +107,21 @@ python pipeline/build_dataset.py
   realtime). They're shared with the owner's other work, so ask before using them. CPU (Ryzen 9 3900X) does ~3× realtime.
 - `data/audio/` holds temporary WAVs only (git-ignored); transcripts and messages are kept.
 
+## Adding new sermons (what's processed is tracked by files, not a list)
+A sermon is **done** when `data/messages/<id>.json` exists. To add more:
+1. Drop the files into `T:\Y\Sermons` (`YYYY-MM-DD Title.ext`, or a track folder).
+2. `python pipeline/inventory.py`. Ids are stable (date + title slug), so existing ones are unchanged.
+   Dry run: `python pipeline/inventory.py T:\Y\Sermons %TEMP%\inv.json` and compare ids.
+3. `python pipeline/transcribe.py --gpu 0` skips anything already transcribed. Check the VRAM rule
+   and ask about the GPUs first.
+4. `python pipeline/build_dataset.py` prints **PENDING transcription / PENDING messages**: that is the
+   work queue. Write messages for each pending id (read the full transcript, avoid repeating themes
+   already used in other files), rerun the build, then bump `versionCode`/`versionName` and release.
+Transcripts are backed up in the private repo `NGJHD/grace-messages-transcripts`
+(`data/transcripts` is its own git repo, ignored by this one); commit and push new ones there.
+
 ## Status (2026-11-03)
-- App: feature-complete for v0.1; tested on the emulator (home, settings, widget at 4×2).
-  Not yet tried on the Folds (check cover-screen widget sizing).
+- App: v1.0.0 released. In daily use on the owner's Galaxy Z Folds since 2026-11-02, working well.
 - Release signing: `android/release.jks` (alias `gracemessages`) + `android/keystore.properties`,
   both git-ignored; backed up to `OneDrive\Files\Archive\Signing Keys\Grace Messages`.
 - Transcription: all 145 done (2015-04-05 is missing CD tracks 1-09 to 1-12, which are unreadable).

@@ -53,6 +53,16 @@ def main() -> int:
 
     OUT.write_text(json.dumps({"version": 1, "sermons": sermons, "messages": messages},
                               ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    # Work queue for future sessions: what is still missing.
+    done = {s["id"] for s in sermons}
+    transcripts = ROOT / "data" / "transcripts"
+    no_tx = [i for i in inventory if not (transcripts / f"{i}.txt").exists()]
+    no_msg = [i for i in inventory if i not in done and i not in no_tx]
+    if no_tx:
+        print(f"PENDING transcription ({len(no_tx)}): run pipeline/transcribe.py\n  " + "\n  ".join(no_tx))
+    if no_msg:
+        print(f"PENDING messages ({len(no_msg)}): write data/messages/<id>.json\n  " + "\n  ".join(no_msg))
+
     lengths = sorted(len(m["text"]) for m in messages)
     print(f"{len(messages)} messages from {len(sermons)} sermons -> {OUT}")
     for limit in (80, 120, 160, 200, 300):
