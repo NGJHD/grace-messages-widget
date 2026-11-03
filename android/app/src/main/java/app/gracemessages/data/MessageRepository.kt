@@ -34,6 +34,7 @@ object Period {
 object MessageRepository {
     private val json = Json { ignoreUnknownKeys = true }
     private val mutex = Mutex()
+    private const val MAX_HISTORY = 50
 
     @Volatile private var cached: Dataset? = null
 
@@ -85,6 +86,35 @@ object MessageRepository {
         pick(context, pool, Period.key(s.refreshHours), exclude = prefs[Keys.CURRENT_ID])
     }
 
+    /**
+     * Steps back to the message shown before the current one. Skips earlier messages that no
+     * longer match the category / fit the widget. Returns null (and changes nothing) if none.
+     */
+    suspend fun previous(context: Context): Message? = mutex.withLock {
+        val prefs = context.dataStore.data.first()
+        val s = prefs.toSettings()
+        val ds = dataset(context)
+        val pool = pool(ds, s, FitLimit.limit(context, s.fontSizeSp)).associateBy { it.id }
+        var result: Message? = null
+        context.dataStore.edit { p ->
+            val history = readHistory(p).toMutableList()
+            while (history.isNotEmpty() && result == null) {
+                result = pool[history.removeAt(history.lastIndex)]
+            }
+            p[Keys.HISTORY] = history.joinToString(",")
+            result?.let {
+                p[Keys.CURRENT_ID] = it.id
+                p[Keys.PERIOD_KEY] = Period.key(s.refreshHours) // stays until the next rotation
+            }
+        }
+        result
+    }
+
+    fun hasPrevious(prefs: Preferences): Boolean = !prefs[Keys.HISTORY].isNullOrEmpty()
+
+    private fun readHistory(p: Preferences): List<String> =
+        p[Keys.HISTORY]?.split(',')?.filter { it.isNotEmpty() } ?: emptyList()
+
     /** Keeps the current message but re-aligns it to the (changed) refresh interval. */
     suspend fun rekey(context: Context) = mutex.withLock {
         context.dataStore.edit { it[Keys.PERIOD_KEY] = Period.key(it.toSettings().refreshHours) }
@@ -102,6 +132,10 @@ object MessageRepository {
             }
             val chosen = pool.randomOrNull()
             if (chosen != null) {
+                val old = p[Keys.CURRENT_ID]
+                if (old != null && old != chosen.id) {
+                    p[Keys.HISTORY] = (readHistory(p) + old).takeLast(MAX_HISTORY).joinToString(",")
+                }
                 p[Keys.CURRENT_ID] = chosen.id
                 p[Keys.SHOWN] = shown + chosen.id
             } else {

@@ -41,6 +41,8 @@ internal object Keys {
     val CURRENT_ID = stringPreferencesKey("current_id")
     val PERIOD_KEY = stringPreferencesKey("period_key")
     val SHOWN = stringSetPreferencesKey("shown_ids")
+    /** Earlier messages, oldest first, comma-separated (for "Previous"). */
+    val HISTORY = stringPreferencesKey("history_ids")
 }
 
 fun Preferences.toSettings(): WidgetSettings {

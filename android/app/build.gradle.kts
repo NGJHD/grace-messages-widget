@@ -17,8 +17,8 @@ android {
         applicationId = "app.gracemessages"
         minSdk = 31
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.1.0"
     }
 
     // Release key lives in android/release.jks + android/keystore.properties (git-ignored).

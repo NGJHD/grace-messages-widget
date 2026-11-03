@@ -44,6 +44,8 @@ fun App() {
     val scope = rememberCoroutineScope()
     val settingsFlow = remember { context.dataStore.data.map { it.toSettings() } }
     val settings by settingsFlow.collectAsStateWithLifecycle(initialValue = null)
+    val canGoBack by remember { context.dataStore.data.map { MessageRepository.hasPrevious(it) } }
+        .collectAsStateWithLifecycle(initialValue = false)
     var message by remember { mutableStateOf<Message?>(null) }
     var loaded by remember { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
@@ -112,6 +114,13 @@ fun App() {
                 onNext = {
                     scope.launch {
                         message = MessageRepository.next(context)
+                        MessageWidget().updateAll(context)
+                    }
+                },
+                canGoBack = canGoBack,
+                onPrevious = {
+                    scope.launch {
+                        MessageRepository.previous(context)?.let { message = it }
                         MessageWidget().updateAll(context)
                     }
                 },

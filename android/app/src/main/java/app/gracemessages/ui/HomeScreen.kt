@@ -3,6 +3,7 @@ package app.gracemessages.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -50,6 +52,8 @@ fun HomeScreen(
     message: Message?,
     sermon: Sermon?,
     onNext: () -> Unit,
+    canGoBack: Boolean,
+    onPrevious: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     Scaffold(
@@ -82,10 +86,21 @@ fun HomeScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    OutlinedButton(onClick = onNext) {
-                        Icon(Icons.Filled.Refresh, contentDescription = null, Modifier.size(18.dp))
-                        Spacer(Modifier.size(8.dp))
-                        Text("Show another message")
+                    // FlowRow: side by side, wrapping onto two lines on the narrow cover screen.
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        OutlinedButton(onClick = onPrevious, enabled = canGoBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, Modifier.size(18.dp))
+                            Spacer(Modifier.size(8.dp))
+                            Text("Previous")
+                        }
+                        OutlinedButton(onClick = onNext) {
+                            Text("Show another message")
+                            Spacer(Modifier.size(8.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, Modifier.size(18.dp))
+                        }
                     }
                     Spacer(Modifier.size(24.dp))
                 }
