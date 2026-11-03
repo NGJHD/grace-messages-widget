@@ -21,7 +21,7 @@ transcripts are not included in this repository.
    - **Category.** All, Inspirational or Insights.
    - **Refresh.** Daily at midnight, or every 1, 2, 3, 4, 6 or 12 hours.
 5. Tap the widget to open the full message, its scripture, the sermon it came from and the reflection.
-   **Show another message** picks a new one.
+   **Show next message** picks a new one, and **Previous** steps back.
 
 The app has no network access.
 

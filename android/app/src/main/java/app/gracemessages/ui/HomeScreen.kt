@@ -97,9 +97,9 @@ fun HomeScreen(
                             Text("Previous")
                         }
                         OutlinedButton(onClick = onNext) {
-                            Text("Show another message")
-                            Spacer(Modifier.size(8.dp))
                             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, Modifier.size(18.dp))
+                            Spacer(Modifier.size(8.dp))
+                            Text("Show next message")
                         }
                     }
                     Spacer(Modifier.size(24.dp))
