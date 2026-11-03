@@ -23,7 +23,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,7 +72,10 @@ fun SettingsScreen(
     onFilterChange: ((WidgetSettings) -> WidgetSettings) -> Unit,
     onRefreshChange: (Int) -> Unit,
     onFontChange: (Int) -> Unit,
+    shownCount: Int,
+    onClearHistory: () -> Unit,
 ) {
+    var confirmClear by remember { mutableStateOf(false) }
     // Slider values are held locally while dragging and saved when released.
     var font by remember(settings.fontSizeSp) { mutableFloatStateOf(settings.fontSizeSp.toFloat()) }
     var editingColor by remember { mutableIntStateOf(0) } // 0 = none, 1 or 2
@@ -191,10 +198,39 @@ fun SettingsScreen(
                     )
                 }
 
+                // Read history
+                Section("Read history") {
+                    Hint("${fmt(shownCount)} of ${fmt(dataset.messages.size)} messages shown so far. Messages don't repeat until every eligible one has been shown.")
+                    val red = MaterialTheme.colorScheme.error
+                    OutlinedButton(
+                        onClick = { confirmClear = true },
+                        enabled = shownCount > 0,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = red),
+                        border = BorderStroke(1.dp, if (shownCount > 0) red else red.copy(alpha = 0.38f)),
+                    ) {
+                        Text("Clear read history")
+                    }
+                }
+
                 Hint("${fmt(dataset.messages.size)} messages from ${fmt(dataset.sermons.size)} sermon${if (dataset.sermons.size == 1) "" else "s"}")
                 Box(Modifier.height(24.dp))
             }
         }
+    }
+
+    if (confirmClear) {
+        AlertDialog(
+            onDismissRequest = { confirmClear = false },
+            title = { Text("Clear read history?") },
+            text = { Text("All messages can be shown again, and Previous starts afresh. The current message stays.") },
+            confirmButton = {
+                TextButton(
+                    onClick = { confirmClear = false; onClearHistory() },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) { Text("Clear") }
+            },
+            dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Cancel") } },
+        )
     }
 
     if (editingColor != 0) {

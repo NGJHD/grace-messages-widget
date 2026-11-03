@@ -110,6 +110,16 @@ object MessageRepository {
         result
     }
 
+    /** Forgets which messages were shown (so all can come round again) and the Previous chain. */
+    suspend fun clearHistory(context: Context) = mutex.withLock {
+        context.dataStore.edit { p ->
+            p.remove(Keys.HISTORY)
+            p[Keys.SHOWN] = setOfNotNull(p[Keys.CURRENT_ID])
+        }
+    }
+
+    fun shownCount(prefs: Preferences): Int = prefs[Keys.SHOWN]?.size ?: 0
+
     fun hasPrevious(prefs: Preferences): Boolean = !prefs[Keys.HISTORY].isNullOrEmpty()
 
     private fun readHistory(p: Preferences): List<String> =

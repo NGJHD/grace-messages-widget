@@ -3,7 +3,7 @@ package app.gracemessages.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -86,20 +86,17 @@ fun HomeScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    // FlowRow: side by side, wrapping onto two lines on the narrow cover screen.
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        OutlinedButton(onClick = onPrevious, enabled = canGoBack) {
+                    // Equal-width pair; the short labels fit even on the Fold cover screen.
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedButton(onClick = onPrevious, enabled = canGoBack, modifier = Modifier.weight(1f)) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, Modifier.size(18.dp))
                             Spacer(Modifier.size(8.dp))
                             Text("Previous")
                         }
-                        OutlinedButton(onClick = onNext) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, Modifier.size(18.dp))
+                        OutlinedButton(onClick = onNext, modifier = Modifier.weight(1f)) {
+                            Text("Next")
                             Spacer(Modifier.size(8.dp))
-                            Text("Show next message")
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, Modifier.size(18.dp))
                         }
                     }
                     Spacer(Modifier.size(24.dp))

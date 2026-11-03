@@ -48,7 +48,9 @@ T:\Y\Sermons (mp3/mka/mkv/mp4, some as CD-track folders)
   remains as a safety net only.
 - **Category filter**: All / Inspirational / Insights. Changing it picks a new message immediately.
 - **Refresh**: Daily (midnight) or every 1/2/3/4/6/12 h, aligned to local clock boundaries.
-  No repeats until the eligible pool is exhausted. "Show next message" (→) and "Previous" (←, steps back through up to 50 earlier messages) in the app.
+  No repeats until the eligible pool is exhausted. Equal-width "← Previous" / "Next →" buttons in the app (Previous steps back through up to 50
+  earlier messages; a refresh still picks a new one). Settings has a red "Clear read history" (with
+  confirm) that resets the no-repeat set and the Previous chain, keeping the current message.
 - **App home**: current message on the chosen background, then category · scripture,
   sermon title + date, and the reflection.
 - No favourites, history, or share (explicitly declined). Fully offline, no INTERNET permission.

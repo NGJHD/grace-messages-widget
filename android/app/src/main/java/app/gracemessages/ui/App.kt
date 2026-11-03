@@ -46,6 +46,8 @@ fun App() {
     val settings by settingsFlow.collectAsStateWithLifecycle(initialValue = null)
     val canGoBack by remember { context.dataStore.data.map { MessageRepository.hasPrevious(it) } }
         .collectAsStateWithLifecycle(initialValue = false)
+    val shownCount by remember { context.dataStore.data.map { MessageRepository.shownCount(it) } }
+        .collectAsStateWithLifecycle(initialValue = 0)
     var message by remember { mutableStateOf<Message?>(null) }
     var loaded by remember { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
@@ -105,6 +107,8 @@ fun App() {
                 onFilterChange = ::applyFilter,
                 onRefreshChange = ::applyRefresh,
                 onFontChange = ::applyFont,
+                shownCount = shownCount,
+                onClearHistory = { scope.launch { MessageRepository.clearHistory(context) } },
             )
         } else {
             HomeScreen(
