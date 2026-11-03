@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Grace Messages</string>
+    <string name="widget_name">Grace Message</string>
+    <string name="widget_description">A message from the sermons, refreshed on your schedule.</string>
+</resources>

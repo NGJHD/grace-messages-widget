@@ -1,0 +1,6 @@
+<resources>
+    <color name="ic_launcher_bg">#2E2366</color>
+    <style name="Theme.GraceMessages" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>

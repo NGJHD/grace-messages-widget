@@ -1,0 +1,20 @@
+# Large/local-only files
+data/audio/
+data/transcripts/
+data/*.log
+tools/
+__pycache__/
+.claude/
+STANDARD.MD
+STANDARD.md
+# Android build outputs
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.apk
+
+# Release signing key (back these up; never commit)
+android/release.jks
+android/keystore.properties
