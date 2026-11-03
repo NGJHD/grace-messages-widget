@@ -4,7 +4,11 @@ A personal, fully offline Android app + home-screen widget that shows a short
 inspirational line or teaching insight drawn from the owner's purchased sermon
 collection (Joseph Prince), with a one- or two-paragraph reflection in the app.
 Sideloaded onto the owner's Galaxy Z Fold 4 / 6 / 7. Never published to a store
-(the sermon-derived text is bundled in the APK).
+(the sermon-derived text is bundled in the APK). Public code repo `NGJHD/grace-messages-widget`
+(no transcripts); transcripts are in the private `NGJHD/grace-messages-transcripts`.
+
+Docs: this file (agent guide), `README.md` (user-facing), `BUILD_NOTES.md` (gotchas),
+`RELEASE_GUIDE.md` (release steps). `STANDARD.MD` is the owner's: never edit or commit it.
 
 ## How it works
 
@@ -22,8 +26,9 @@ T:\Y\Sermons (mp3/mka/mkv/mp4, some as CD-track folders)
   typically 3–7 per sermon, as many as the sermon genuinely supports).
 - `data/messages/<sermon-id>.json` is a list of
   `{"category": "inspirational"|"insight", "text", "explanation", "scripture"?}`.
-  For a recording with no title, use `{"title": "...", "messages": [...]}` to name it
-  (e.g. `2026-05-10-untitled`).
+  To override the inventory title (guest preachers: "Title (Ps Name)"), use
+  `{"title": "...", "messages": [...]}`. Untitled recordings: rename the source file instead
+  (as was done for 2026-05-10), then re-run the inventory.
 - **text**: rephrased (the preacher is long-winded), tight, standalone, widget-sized.
   Mix lengths; include some short ones (< 80 chars) because small widgets only hold ~40–60.
 - **explanation**: LLM-written, 1–2 paragraphs (blank line between), faithful to what
@@ -48,19 +53,21 @@ T:\Y\Sermons (mp3/mka/mkv/mp4, some as CD-track folders)
   remains as a safety net only.
 - **Category filter**: All / Inspirational / Insights. Changing it picks a new message immediately.
 - **Refresh**: Daily (midnight) or every 1/2/3/4/6/12 h, aligned to local clock boundaries.
-  No repeats until the eligible pool is exhausted. Equal-width "← Previous" / "Next →" buttons in the app (Previous steps back through up to 50
-  earlier messages; a refresh still picks a new one). Settings has a red "Clear read history" (with
-  confirm) that resets the no-repeat set and the Previous chain, keeping the current message.
+  No repeats until the eligible pool is exhausted.
 - **App home**: current message on the chosen background, then category · scripture,
-  sermon title + date, and the reflection.
-- No favourites, history, or share (explicitly declined). Fully offline, no INTERNET permission.
+  sermon title + date, the reflection, and equal-width "← Previous" / "Next →" buttons.
+  Previous steps back through up to 50 earlier messages (a refresh still picks a new one).
+- **Settings ▸ Read history**: shows "N of M shown" and a red "Clear read history" (with confirm)
+  that resets the no-repeat set and the Previous chain, keeping the current message.
+- No favourites or share (explicitly declined). Previous/read history was added at the owner's
+  request on 2026-11-03. Fully offline, no INTERNET permission.
 
 ## Android code map (`android/`, package `app.gracemessages`)
 - `data/Models.kt`: Dataset/Sermon/Message (kotlinx.serialization), CategoryFilter.
 - `data/Settings.kt`: DataStore preferences (font, colours, gradient, category, refresh,
-  plus selection state: current id, period key, shown ids).
+  plus selection state: current id, period key, shown ids, Previous history).
 - `data/MessageRepository.kt`: loads `assets/messages.json`; `current()` (period rollover
-  + re-fit), `next()` (shuffle), `rekey()`; `Period` handles the time buckets.
+  + re-fit), `next()` (shuffle), `previous()`, `clearHistory()`, `rekey()`; `Period` handles the time buckets.
 - `data/Presets.kt`: background presets, white-contrast check.
 - `widget/MessageWidget.kt`: Glance widget (`SizeMode.Exact`) + receiver. Content
   **observes the DataStore flow**: Glance only calls `provideGlance` once per session
@@ -86,7 +93,8 @@ Compose BOM 2025.09.00, Glance 1.1.1, DataStore 1.1.7, JDK 21.
 
 ## Commands
 ```bash
-# Build (release is R8-minified and signed with the debug key for sideloading)
+# Build (release is R8-minified, signed with release.jks; falls back to the debug key if
+# keystore.properties is missing, which won't install over the released app)
 cd android && ./gradlew assembleRelease     # → app/build/outputs/apk/release/app-release.apk
 adb install -r app/build/outputs/apk/release/app-release.apk
 
@@ -95,7 +103,8 @@ adb install -r app/build/outputs/apk/release/app-release.apk
 
 # Pipeline
 python pipeline/inventory.py                         # re-scan T:\Y\Sermons
-python pipeline/transcribe.py --gpu 0 --shard 0/2    # resumable; run 1/2 on --gpu 1 in parallel
+python pipeline/transcribe.py --gpu 0                # resumable; with both GPUs free:
+                                                     #   --gpu 0 --shard 0/2  and  --gpu 1 --shard 1/2
 python pipeline/build_dataset.py
 ```
 
@@ -106,7 +115,9 @@ python pipeline/build_dataset.py
   whisper.cpp v1.9.5 (release `b5454`) binaries in `tools/whisper-cpu` and `tools/whisper-cuda`
   (git-ignored). Running freshly downloaded binaries needs the owner's explicit approval.
 - GPUs: RTX 5060 Ti (idx 0) + RTX 3080 (idx 1), both work with the CUDA 12.4 build (~35×
-  realtime). They're shared with the owner's other work, so ask before using them. CPU (Ryzen 9 3900X) does ~3× realtime.
+  realtime); set `CUDA_DEVICE_ORDER=PCI_BUS_ID` so the indices match nvidia-smi. They're shared
+  with the owner's other work (the 3080 often trains models), so ask before using them, and only
+  use one whose VRAM use is under 1.5 GB. CPU (Ryzen 9 3900X) does ~3× realtime.
 - `data/audio/` holds temporary WAVs only (git-ignored); transcripts and messages are kept.
 
 ## Adding new sermons (what's processed is tracked by files, not a list)
@@ -123,7 +134,7 @@ Transcripts are backed up in the private repo `NGJHD/grace-messages-transcripts`
 (`data/transcripts` is its own git repo, ignored by this one); commit and push new ones there.
 
 ## Status (2026-11-03)
-- App: v1.0.0 released. In daily use on the owner's Galaxy Z Folds since 2026-11-02, working well.
+- App: v1.2.0 released (versionCode 5). In daily use on the owner's Galaxy Z Folds since 2026-11-02, working well.
 - Release signing: `android/release.jks` (alias `gracemessages`) + `android/keystore.properties`,
   both git-ignored; backed up to `OneDrive\Files\Archive\Signing Keys\Grace Messages`.
 - Transcription: all 145 done (2015-04-05 is missing CD tracks 1-09 to 1-12, which are unreadable).
